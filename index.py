@@ -64,12 +64,11 @@ features_colors = {
 }
     
 fig = make_subplots(rows=len(features), cols=1, shared_xaxes=False, subplot_titles=subplot_titles)
-    subplot_titles = [
+subplot_titles = [
     "KDA Distribution", "Gold Distribution", "Level Distribution", 
     "Participation Distribution", "Damage Dealt Distribution", 
     "Damage Taken Distribution", "Damage Turret Distribution"
 ]
-)
 for i, feat in enumerate(features, 1):
     fig.add_trace(go.Box(x=all_players[feat], name=feat, boxpoints='outliers'), row=i, col=1)
 fig.update_layout(height=300*len(features), width=800, showlegend=False)
