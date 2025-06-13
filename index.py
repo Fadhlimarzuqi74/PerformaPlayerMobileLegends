@@ -58,7 +58,7 @@ fig = make_subplots(
 )
 for i, feat in enumerate(features, 1):
     fig.add_trace(go.Box(x=all_players[feat], name=feat, boxpoints='outliers'), row=i, col=1)
-fig.update_layout(height=300*len(features), width=800, showlegend=False)
+fig.update_layout(height=300*len(features), width=800, showlegend=True)
 st.plotly_chart(fig, use_container_width=True)
 
 # ---- FUZZY MEMBERSHIP FUNCTION ----
