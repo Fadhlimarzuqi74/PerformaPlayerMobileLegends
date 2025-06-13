@@ -320,7 +320,7 @@ def defuzzification(inferenced_table):
     return [max_bad, max_decent, max_good]
 
 # Pastikan fuzzy_limits sudah dibaca sebelumnya
-# fuzzy_limits = pd.read_csv('fuzzy_limits.csv')
+fuzzy_limits = pd.read_csv('fuzzy_limits.csv')
 
 # Contoh generate random sample untuk semua role utama
 roles = ['Jungler', 'Midlane', 'Explane', 'Goldlane', 'Roamer']
@@ -347,8 +347,6 @@ for role in roles:
 
 # Gabungkan seluruh sample
 randomsample = pd.concat(random_samples, ignore_index=True)
-
-fuzzy_limits = pd.read_csv('fuzzy_limits.csv')
 
 # Pastikan stat_cols sudah didefinisikan sesuai dengan pipeline kamu
 stat_cols = ['KDA', 'Gold', 'Level', 'Partisipation', 'Damage_Dealt', 'Damage_Taken', 'Damage_Turret']
