@@ -51,43 +51,18 @@ st.dataframe(fuzzy_limits, hide_index=True)
 
 
 # ---- DISTRIBUSI DATA ----
-import plotly.colors as pc
-
-colors = pc.qualitative.Plotly  # palet warna default Plotly, bisa diganti sesuai preferensi
-
+features = ['KDA', 'Gold', 'Level', 'Partisipation', 'Damage_Dealt', 'Damage_Taken', 'Damage_Turret']
 fig = make_subplots(
     rows=len(features), cols=1, shared_yaxes=False,
-    subplot_titles=[f"{x} Distribution" for x in features],
-    vertical_spacing=0.04
+    subplot_titles = [
+    "KDA Distribution", "Gold Distribution", "Level Distribution", 
+    "Participation Distribution", "Damage Dealt Distribution", 
+    "Damage Taken Distribution", "Damage Turret Distribution"
+]
 )
 for i, feat in enumerate(features, 1):
-    fig.add_trace(
-        go.Box(
-            x=all_players[feat],
-            name=feat,
-            boxpoints='outliers',
-            marker_color=colors[(i-1) % len(colors)],
-            line=dict(width=2),
-            fillcolor=colors[(i-1) % len(colors)],
-            opacity=0.75,
-            boxmean='sd'  # tampilkan mean dan std jika ingin
-        ),
-        row=i, col=1
-    )
-
-fig.update_layout(
-    height=280*len(features),
-    width=800,
-    showlegend=False,
-    margin=dict(l=60, r=40, t=80, b=50),
-    plot_bgcolor='white',
-    paper_bgcolor='white',
-    font=dict(size=13, family="Arial"),
-)
-for i in range(1, len(features)+1):
-    fig.update_xaxes(showgrid=True, gridcolor='lightgrey', zeroline=False, row=i, col=1)
-    fig.update_yaxes(showgrid=True, gridcolor='lightgrey', zeroline=False, row=i, col=1)
-
+    fig.add_trace(go.Box(x=all_players[feat], name=feat, boxpoints='outliers'), row=i, col=1)
+fig.update_layout(height=300*len(features), width=800, showlegend=False)
 st.plotly_chart(fig, use_container_width=True)
 # ---- FUZZY MEMBERSHIP FUNCTION ----
 def fuzzify(min_val, mean_val, max_val, x):
