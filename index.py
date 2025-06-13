@@ -26,7 +26,7 @@ menu = st.sidebar.radio(
 if menu == "Statistik Dataset":
     st.title("Statistik Dataset Pemain MPL")
     st.markdown("**Data 250 baris, 25 hero populer, 5 role utama**")
-    st.write(all_players.head())
+    st.write(all_players)
 
     st.subheader("Deskripsi Statistik")
     st.dataframe(all_players.describe())
@@ -77,8 +77,10 @@ if menu == "Visualisasi Fuzzy Limits":
     fig.update_layout(height=1800, width=800, showlegend=True)
     st.plotly_chart(fig)
 
-    st.markdown("> **Keterangan:** Titik-titik pada box plot adalah batas min, mean, dan max dari masing-masing variabel fuzzy untuk setiap role.")
-
+    # Tambahan: tampilkan tabel
+    st.subheader("Tabel Fuzzy Limits")
+    st.caption("Min, Mean, Max setiap fitur statistik untuk masing-masing role (hasil dari fuzzy_limits.csv).")
+    st.dataframe(fuzzy_limits)
 # ---------- 3. TABEL FUZZYFIKASI ----------
 if menu == "Tabel Fuzzyfikasi":
     st.title("Tabel Hasil Fuzzyfikasi Derajat Keanggotaan")
