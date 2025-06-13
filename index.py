@@ -5,38 +5,51 @@ from plotly.subplots import make_subplots
 import numpy as np
 import ast
 
+# ---------- DATA LOADING ----------
 @st.cache_data
 def load_data():
     all_players = pd.read_csv('all_players.csv')
     fuzzy_limits = pd.read_csv('fuzzy_limits.csv')
-    fuzzylogic_final = pd.read_csv('fuzzylogic_final.csv')
     rules = pd.read_csv('playerinference_rules.csv')
-    fuzzified = pd.read_csv('fuzzified_player.csv')
-    return all_players, fuzzy_limits, fuzzylogic_final, rules, fuzzified
+    fuzzylogic_final = pd.read_csv('fuzzylogic_final.csv')
+    return all_players, fuzzy_limits, rules, fuzzylogic_final
 
-all_players, fuzzy_limits, fuzzylogic_final, rules, fuzzified = load_data()
+all_players, fuzzy_limits, rules, fuzzylogic_final = load_data()
 
-# --- SIDEBAR: tambah menu baru ---
+# ---------- SIDEBAR ----------
 st.sidebar.title("Fuzzy Logic Player Performance")
 menu = st.sidebar.radio(
     "Pilih halaman:",
-    (
-        "Statistik Dataset",
-        "Visualisasi Fuzzy Limits",
-        "Tabel Inferensi (Rules)",  # <-- TAMBAHAN
-        "Tabel Fuzzyfikasi",
-        "Hasil Fuzzy Logic"
-    )
+    ("Statistik Dataset", "Visualisasi Fuzzy Limits", "Tabel Inferensi (Rules)", "Tabel Fuzzyfikasi", "Hasil Fuzzy Logic")
 )
 
-# --- TABEL FUZZY LIMITS + VISUALISASI ---
-if menu == "Visualisasi Fuzzy Limits":
-    st.title("Tabel & Visualisasi Fuzzy Limits")
+# ---------- 1. STATISTIK DATASET ----------
+if menu == "Statistik Dataset":
+    st.title("Statistik Dataset Pemain MPL")
+    st.markdown("**Data 250 baris, 25 hero populer, 5 role utama**")
+    st.write(all_players)
 
-    st.subheader("Tabel Fuzzy Limits")
+    st.subheader("Deskripsi Statistik")
+    st.dataframe(all_players.describe())
+
+    st.subheader("Cek Null & Duplicate")
+    st.write("Missing values per kolom:")
+    st.write(all_players.isnull().sum())
+    st.write("Jumlah duplikasi:", all_players.duplicated().sum())
+
+    st.info("Dataset sudah bersih dan siap digunakan.")
+
+# ---------- 2. VISUALISASI FUZZY LIMITS ----------
+
+if menu == "Visualisasi Fuzzy Limits":
+    st.title("Tabel & Visualisasi Batasan Fuzzy")
+
+    # --- Tampilkan tabel lebih dulu ---
+    st.subheader("Batasan Fuzzy")
     st.caption("Min, Mean, Max setiap fitur statistik untuk masing-masing role (hasil dari fuzzy_limits.csv).")
     st.dataframe(fuzzy_limits)
 
+    # --- Lanjut visualisasi di bawahnya ---
     st.subheader("Visualisasi Distribusi Statistik Pemain (Boxplot per Fitur)")
     features = ['KDA', 'Gold', 'Level', 'Partisipation', 'Damage_Dealt', 'Damage_Taken', 'Damage_Turret']
     fig = make_subplots(
@@ -48,32 +61,42 @@ if menu == "Visualisasi Fuzzy Limits":
     fig.update_layout(height=300*len(features), width=800, showlegend=True)
     st.plotly_chart(fig, use_container_width=True)
 
-# --- MENU BARU: TABEL INFERENSI (RULES) ---
+# --- 3. TABEL INFERENSI (RULES) ---
 if menu == "Tabel Inferensi (Rules)":
     st.title("Tabel Inferensi Fuzzy Logic (Rule Base)")
     st.caption("Aturan inferensi fuzzy logic per role berdasarkan kombinasi label (low/medium/high) masing-masing fitur.")
     st.dataframe(rules)
     st.info("Kolom Performance adalah output hasil inferensi fuzzy berdasarkan kombinasi nilai fuzzy setiap fitur.")
-
-# --- TABEL FUZZYFIKASI ---
+    
+# ---------- 4. TABEL FUZZYFIKASI ----------
 if menu == "Tabel Fuzzyfikasi":
     st.title("Tabel Hasil Fuzzyfikasi Derajat Keanggotaan")
     st.caption("Setiap fitur pemain dikonversi ke derajat keanggotaan fuzzy (low, medium, high) berbentuk list [μ_low, μ_med, μ_high].")
-    pemain = st.selectbox("Pilih Nama Pemain", options=all_players['Player_Name'].unique())
-    st.write(fuzzified[fuzzified['Player_Name'] == pemain])
 
-# --- HASIL AKHIR FUZZY LOGIC ---
+    # Pilihan filter
+    pemain = st.selectbox("Pilih Nama Pemain", options=all_players['Player_Name'].unique())
+    df_fuzzy = pd.read_csv('fuzzified_player.csv')
+    st.write(df_fuzzy[df_fuzzy['Player_Name'] == pemain])
+
+    st.markdown("> **Keterangan:** Nilai pada kolom mu_xxx menunjukkan derajat keanggotaan fuzzy setelah proses fuzzification.")
+
+# ---------- 5. HASIL FUZZY LOGIC ----------
 if menu == "Hasil Fuzzy Logic":
     st.title("Hasil Akhir Inferensi Fuzzy Logic")
+    st.markdown("Tiap baris adalah hasil inferensi fuzzy logic untuk **setiap pemain** (role, hero, fuzzy label fitur, hasil performance).")
     st.dataframe(fuzzylogic_final)
+
     st.subheader("Rekapitulasi Jumlah Performance per Role")
     summary = fuzzylogic_final.groupby(['Player_Role','Performance'])['Player_Name'].count().unstack().fillna(0).astype(int)
     st.dataframe(summary)
+
     st.subheader("Distribusi Performance")
     import plotly.express as px
     fig = px.histogram(fuzzylogic_final, x="Performance", color="Player_Role", barmode='group')
     st.plotly_chart(fig)
+
     st.info("Label Performance: **good**, **decent**, **bad** berdasarkan aturan fuzzy rule base.")
 
+# ---------- FOOTER ----------
 st.markdown("---")
 st.caption("App dibuat dengan :heart: oleh [Fadhlimarzuqi74](https://github.com/Fadhlimarzuqi74)")
