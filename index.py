@@ -112,8 +112,7 @@ variables = ["KDA", "Gold", "Level", "Partisipation", "Damage_Dealt", "Damage_Ta
 subplot_titles = [
     "KDA Distribution", "Gold Distribution", "Level Distribution", 
     "Participation Distribution", "Damage Dealt Distribution", 
-    "Damage Taken Distribution", "Damage Turret Distribution"
-]
+    "Damage Taken Distribution", "Damage Turret Distribution"]
 
 # Dictionary warna untuk tiap variabel
 variable_colors = {
@@ -147,8 +146,6 @@ def boxGraph(df):
                 ), row=i+1, col=1)
     fig.update_layout(height=1800, width=800, showlegend=True)
     st.plotly_chart(fig)
-
-boxGraph(df)
 
 # Contoh fungsi fuzzy membership (segitiga) dengan min, mean, max
 def fuzzify(min_val, mean_val, max_val, x):
