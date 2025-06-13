@@ -51,7 +51,13 @@ st.dataframe(fuzzy_limits, hide_index=True)
 
 
 # ---- DISTRIBUSI DATA ----
-features = ['KDA', 'Gold', 'Level', 'Partisipation', 'Damage_Dealt', 'Damage_Taken', 'Damage_Turret']
+features = ["KDA", "Gold", "Level", "Partisipation", "Damage_Dealt", "Damage_Taken", "Damage_Turret"]
+subplot_titles = [
+    "KDA Distribution", "Gold Distribution", "Level Distribution", 
+    "Participation Distribution", "Damage Dealt Distribution", 
+    "Damage Taken Distribution", "Damage Turret Distribution"
+]
+
 # Dictionary warna untuk tiap variabel
 features_colors = {
     "KDA": "#1f77b4",
@@ -62,17 +68,29 @@ features_colors = {
     "Damage_Taken": "#8c564b",
     "Damage_Turret": "#e377c2"
 }
-    
-fig = make_subplots(rows=len(features), cols=1, shared_xaxes=False, subplot_titles=subplot_titles)
-subplot_titles = [
-    "KDA Distribution", "Gold Distribution", "Level Distribution", 
-    "Participation Distribution", "Damage Dealt Distribution", 
-    "Damage Taken Distribution", "Damage Turret Distribution"
-]
-for i, feat in enumerate(features, 1):
-    fig.add_trace(go.Box(x=all_players[feat], name=feat, boxpoints='outliers'), row=i, col=1)
-fig.update_layout(height=300*len(features), width=800, showlegend=False)
-st.plotly_chart(fig, use_container_width=True)
+
+def boxGraph(df):
+    fig = make_subplots(rows=len(variables), cols=1, shared_xaxes=False, subplot_titles=subplot_titles)
+    for i, var in enumerate(features):
+        color = features_colors.get(var, "#333333")
+        for role in df['Role'].unique():
+            vals = df[(df['Role'] == role) & (df['Features'] == var)]
+            values = []
+            if not vals.empty:
+                row = vals.iloc[0]
+                values = [row['min_val'], row['mean_val'], row['max_val']]
+            if values:
+                fig.add_trace(go.Box(
+                    y=values, 
+                    name=role, 
+                    boxpoints='all', 
+                    jitter=0.5,
+                    marker_color=color,      # warna berdasarkan variabel
+                    showlegend=(i==0)        # legend hanya sekali di subplot pertama
+                ), row=i+1, col=1)
+    fig.update_layout(height=1800, width=800, showlegend=True)
+    st.plotly_chart(fig)
+
 # ---- FUZZY MEMBERSHIP FUNCTION ----
 def fuzzify(min_val, mean_val, max_val, x):
     if mean_val == min_val: mean_val += 1e-6
