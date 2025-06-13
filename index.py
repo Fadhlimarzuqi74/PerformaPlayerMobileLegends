@@ -25,6 +25,18 @@ hero_populer = jungler_list + explane_list + midlane_list + roamer_list + goldla
 # Filter hanya pemain yang main 25 hero populer
 all_players = df[df['Hero_Pick'].isin(hero_populer)].copy()
 
+# ---- DISTRIBUSI DATA ----
+st.subheader('Distribusi Data Statistik Pemain')
+features = ['KDA', 'Gold', 'Level', 'Partisipation', 'Damage_Dealt', 'Damage_Taken', 'Damage_Turret']
+fig = make_subplots(
+    rows=len(features), cols=1, shared_yaxes=False,
+    subplot_titles=[f"{x} Distribution" for x in features]
+)
+for i, feat in enumerate(features, 1):
+    fig.add_trace(go.Box(x=all_players[feat], name=feat, boxpoints='outliers'), row=i, col=1)
+fig.update_layout(height=300*len(features), width=800, showlegend=False)
+st.plotly_chart(fig, use_container_width=True)
+
 # ---- FUZZY LIMITS ----
 def get_fuzzy_limits(df):
     result = []
@@ -47,19 +59,6 @@ def get_fuzzy_limits(df):
 fuzzy_limits = get_fuzzy_limits(all_players)
 st.subheader('Batasan Fuzzy per Statistik dan Role')
 st.dataframe(fuzzy_limits, hide_index=True)
-
-# ---- DISTRIBUSI DATA ----
-st.subheader('Distribusi Data Statistik Pemain')
-features = ['KDA', 'Gold', 'Level', 'Partisipation', 'Damage_Dealt', 'Damage_Taken', 'Damage_Turret']
-fig = make_subplots(
-    rows=len(features), cols=1, shared_yaxes=False,
-    subplot_titles=[f"{x} Distribution" for x in features]
-)
-for i, feat in enumerate(features, 1):
-    fig.add_trace(go.Box(x=all_players[feat], name=feat, boxpoints='outliers'), row=i, col=1)
-fig.update_layout(height=300*len(features), width=800, showlegend=False)
-st.plotly_chart(fig, use_container_width=True)
-
 
 # ---- FUZZY MEMBERSHIP FUNCTION ----
 def fuzzify(min_val, mean_val, max_val, x):
