@@ -39,48 +39,29 @@ if menu == "Statistik Dataset":
     st.info("Dataset sudah bersih dan siap digunakan.")
 
 # ---------- 2. VISUALISASI FUZZY LIMITS ----------
-if menu == "Visualisasi Fuzzy Limits":
-    st.title("Visualisasi Fuzzy Limits per Role & Variable")
-    variables = ["KDA", "Gold", "Level", "Partisipation", "Damage_Dealt", "Damage_Taken", "Damage_Turret"]
-    subplot_titles = [
-        "KDA Distribution", "Gold Distribution", "Level Distribution", 
-        "Participation Distribution", "Damage Dealt Distribution", 
-        "Damage Taken Distribution", "Damage Turret Distribution"
-    ]
-    variable_colors = {
-        "KDA": "#1f77b4",
-        "Gold": "#ff7f0e",
-        "Level": "#2ca02c",
-        "Partisipation": "#d62728",
-        "Damage_Dealt": "#9467bd",
-        "Damage_Taken": "#8c564b",
-        "Damage_Turret": "#e377c2"
-    }
-    fig = make_subplots(rows=len(variables), cols=1, shared_xaxes=False, subplot_titles=subplot_titles)
-    for i, var in enumerate(variables):
-        color = variable_colors.get(var, "#333333")
-        for role in fuzzy_limits['Role'].unique():
-            vals = fuzzy_limits[(fuzzy_limits['Role'] == role) & (fuzzy_limits['Variable'] == var)]
-            values = []
-            if not vals.empty:
-                row = vals.iloc[0]
-                values = [row['min_val'], row['mean_val'], row['max_val']]
-            if values:
-                fig.add_trace(go.Box(
-                    y=values, 
-                    name=role, 
-                    boxpoints='all', 
-                    jitter=0.5,
-                    marker_color=color,
-                    showlegend=(i==0)
-                ), row=i+1, col=1)
-    fig.update_layout(height=1800, width=800, showlegend=True)
-    st.plotly_chart(fig)
 
-    # Tambahan: tampilkan tabel
+# Tambahan: tampilkan tabel
+    st.subheader("Tabel Batasan Fuzzy")
+    st.caption("Min, Mean, Max setiap variabel untuk masing-masing role (hasil dari fuzzy_limits.csv).")
+    st.dataframe(fuzzy_limits)
+    
+if menu == "Visualisasi Batasan Fuzzy":
+    st.title("Visualisasi Distribusi Statistik Pemain (Boxplot per Fitur)")
+    features = ['KDA', 'Gold', 'Level', 'Partisipation', 'Damage_Dealt', 'Damage_Taken', 'Damage_Turret']
+    fig = make_subplots(
+        rows=len(features), cols=1, shared_yaxes=False,
+        subplot_titles=[f"{x} Distribution" for x in features]
+    )
+    for i, feat in enumerate(features, 1):
+        fig.add_trace(go.Box(x=all_players[feat], name=feat, boxpoints='outliers'), row=i, col=1)
+    fig.update_layout(height=300*len(features), width=800, showlegend=True)
+    st.plotly_chart(fig, use_container_width=True)
+
     st.subheader("Tabel Fuzzy Limits")
     st.caption("Min, Mean, Max setiap fitur statistik untuk masing-masing role (hasil dari fuzzy_limits.csv).")
     st.dataframe(fuzzy_limits)
+
+    
 # ---------- 3. TABEL FUZZYFIKASI ----------
 if menu == "Tabel Fuzzyfikasi":
     st.title("Tabel Hasil Fuzzyfikasi Derajat Keanggotaan")
