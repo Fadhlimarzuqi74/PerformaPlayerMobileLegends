@@ -52,6 +52,16 @@ st.dataframe(fuzzy_limits, hide_index=True)
 
 # ---- DISTRIBUSI DATA ----
 features = ['KDA', 'Gold', 'Level', 'Partisipation', 'Damage_Dealt', 'Damage_Taken', 'Damage_Turret']
+# Dictionary warna untuk tiap variabel
+features_colors = {
+    "KDA": "#1f77b4",
+    "Gold": "#ff7f0e",
+    "Level": "#2ca02c",
+    "Partisipation": "#d62728",
+    "Damage_Dealt": "#9467bd",
+    "Damage_Taken": "#8c564b",
+    "Damage_Turret": "#e377c2"
+    
 fig = make_subplots(
     rows=len(features), cols=1, shared_yaxes=False,
     subplot_titles = [
