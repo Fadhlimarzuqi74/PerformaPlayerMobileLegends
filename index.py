@@ -28,14 +28,44 @@ all_players = df[df['Hero_Pick'].isin(hero_populer)].copy()
 # ---- DISTRIBUSI DATA ----
 st.subheader('Distribusi Data Statistik Pemain')
 features = ['KDA', 'Gold', 'Level', 'Partisipation', 'Damage_Dealt', 'Damage_Taken', 'Damage_Turret']
-fig = make_subplots(
-    rows=len(features), cols=1, shared_yaxes=False,
-    subplot_titles=[f"{x} Distribution" for x in features]
-)
-for i, feat in enumerate(features, 1):
-    fig.add_trace(go.Box(x=all_players[feat], name=feat, boxpoints='outliers'), row=i, col=1)
-fig.update_layout(height=300*len(features), width=800, showlegend=False)
-st.plotly_chart(fig, use_container_width=True)
+def boxGraph(df):
+    fig = make_subplots(rows=len(variables), cols=1, shared_xaxes=False, subplot_titles=subplot_titles)
+    for i, var in enumerate(variables):
+        for role in df['Role'].unique():
+            vals = df[(df['Role'] == role) & (df['Variable'] == var)]
+            values = []
+            if not vals.empty:
+                row = vals.iloc[0]
+                values = [row['min_val'], row['mean_val'], row['max_val']]
+            if values:
+                fig.add_trace(go.Box(
+                    y=values, 
+                    name=role, 
+                    boxpoints='all', 
+                    jitter=0.5,
+                    marker_color=role_colors.get(role, "#333333"),
+                    showlegend=(i==0)
+                ), row=i+1, col=1)
+                
+                # Tambahkan kotak kecil/minor marker untuk setiap value
+                # X = jumlah role + offset supaya tidak menimpa boxplot
+                x_offset = 0.3  # geser ke kanan dari boxplot
+                for idx, val in enumerate(values):
+                    fig.add_trace(go.Scatter(
+                        x=[role], y=[val],
+                        mode='markers',
+                        marker=dict(
+                            symbol='square',
+                            size=14,
+                            color='white',
+                            line=dict(color=role_colors.get(role, "#333333"), width=2)
+                        ),
+                        showlegend=False,
+                        hovertext=f"{['min','mean','max'][idx]}: {val}",
+                        hoverinfo="text"
+                    ), row=i+1, col=1)
+    fig.update_layout(height=1800, width=800, showlegend=True)
+    st.plotly_chart(fig)
 
 # ---- FUZZY LIMITS ----
 def get_fuzzy_limits(df):
