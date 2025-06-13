@@ -239,13 +239,19 @@ chosen_hero = st.selectbox("Pilih Hero", heroes_for_role)
 hasil_fuzzy = all_players_fuzzy[(all_players_fuzzy['Player_Role']==chosen_role) & (all_players_fuzzy['Hero_Pick']==chosen_hero)]
 
 def get_fuzzy_label(mu_str):
-    if isinstance(mu_str, str):
-        mu = ast.literal_eval(mu_str)
-    else:
-        mu = list(mu_str)
-    idx = mu.index(max(mu))
-    return ['low', 'medium', 'high'][idx]
-
+    try:
+        if isinstance(mu_str, str):
+            # Jika string, coba parse list/tuple dari string
+            mu = ast.literal_eval(mu_str)
+        else:
+            # Jika sudah list/array
+            mu = list(mu_str)
+        idx = mu.index(max(mu))
+        return ['low', 'medium', 'high'][idx]
+    except Exception as e:
+        # Jika gagal parsing, anggap tidak valid
+        return "none"
+        
 rows = []
 for idx, row in hasil_fuzzy.iterrows():
     features = role_features.get(chosen_role, [])
