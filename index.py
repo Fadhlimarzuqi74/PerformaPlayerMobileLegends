@@ -61,6 +61,7 @@ features_colors = {
     "Damage_Dealt": "#9467bd",
     "Damage_Taken": "#8c564b",
     "Damage_Turret": "#e377c2"
+}
     
 fig = make_subplots(
     rows=len(features), cols=1, shared_yaxes=False,
