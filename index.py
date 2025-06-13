@@ -172,22 +172,61 @@ st.dataframe(fuzzy_limits)
 st.write('Distribusi statistik per role:')
 boxGraph(fuzzy_limits)
 
-# --- SECTION 2: User Input Hero untuk Analisis ---
-st.write('## Masukkan Hero')
-chosen = st.text_input('Hero')
+# ---- HERO INPUT ----
+st.subheader('Cari Performa Pemain dari Nama Hero')
+hero_name = st.text_input('Masukkan Nama Hero (case sensitive, contoh: Fredrinn):')
+filtered = all_players if not hero_name else all_players[all_players['Hero_Pick'] == hero_name]
 
-if chosen:
-    # Filter player yang pernah pakai hero tersebut
-    filtered_players = all_players[all_players['Hero_Pick'].str.lower() == chosen.lower()]
-    if not filtered_players.empty:
-        st.write('Data player yang menggunakan hero ini:')
-        st.dataframe(filtered_players)
-    else:
-        st.warning('Tidak ada data player yang menggunakan hero tersebut.')
+if filtered.empty:
+    st.info("Tidak ada data untuk Hero yang dimasukkan.")
+else:
+    # Tampilkan data ringkas
+    st.write(f"Menampilkan {len(filtered)} data pemain untuk hero `{hero_name or '[ALL]'}`")
+    st.dataframe(filtered[['Player_Name','Player_Role','Hero_Pick'] + features], hide_index=True)
 
-# --- FUZZYFIKASI DAN OUTPUT ---
-st.write('## Fuzzyfikasi Seluruh Pemain')
-fuzzy_df = calculateMuValues(all_players.copy(), fuzzy_limits)
-st.dataframe(fuzzy_df.head(20))
+    # FUZZY + INFERENSI
+    fuzzy_rows = []
+    fuzzyval_rows = []   # Untuk tabel hasil fuzzifikasi
+    for idx, row in filtered.iterrows():
+        role = row['Player_Role']
+        feats = role_features.get(role, [])
+        vals, mlabels, val_dict = {}, {}, {}
+        for f in feats:
+            lims = fuzzy_limits[(fuzzy_limits['Role'] == role) & (fuzzy_limits['Variable'] == f)]
+            if lims.empty: continue
+            mu = fuzzify(lims['min_val'].values[0], lims['mean_val'].values[0], lims['max_val'].values[0], row[f])
+            vals[f] = mu
+            val_dict[f] = mu  # simpan nilai fuzzy untuk tabel fuzzifikasi
+            mlabels[f] = fuzzy_label(mu) # label (low, med, high)
+        # Proses inferensi rules (ambil performa dari tabel rules_df)
+        rule_match = rules_df[(rules_df['Role'] == role)]
+        for f in feats:
+            rule_match = rule_match[rule_match[f] == mlabels[f]]
+        performance = rule_match['Performance'].values[0] if not rule_match.empty else 'unknown'
+        # Tabel hasil klasifikasi akhir
+        fuzzy_rows.append({
+            'Player_Name': row['Player_Name'],
+            'Role': role,
+            'Hero': row['Hero_Pick'],
+            **mlabels,
+            'Performance': performance
+        })
+        # Tabel hasil fuzzifikasi (nilai keanggotaan)
+        fuzzyval_row = {
+            'Player_Name': row['Player_Name'],
+            'Role': role,
+            'Hero': row['Hero_Pick']
+        }
+        for f in feats:
+            fuzzyval_row[f'{f}_fuzzy'] = vals[f]  # contoh: [mu_low, mu_med, mu_high]
+            fuzzyval_row[f'{f}_label'] = mlabels[f]  # contoh: low/med/high
+        fuzzyval_rows.append(fuzzyval_row)
 
+    # Tabel hasil fuzzifikasi
+    st.subheader('Hasil Fuzzifikasi (Nilai Keanggotaan & Label Fuzzy)')
+    st.dataframe(pd.DataFrame(fuzzyval_rows), hide_index=True)
+
+    # Tabel hasil akhir fuzzy logic
+    st.subheader('Hasil Klasifikasi Performa (Fuzzy Logic)')
+    st.dataframe(pd.DataFrame(fuzzy_rows), hide_index=True)
 st.success("Script telah diperbaiki agar dapat dijalankan pada Streamlit! Pastikan semua file .csv tersedia di folder yang sama dengan script ini.")
