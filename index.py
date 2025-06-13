@@ -63,8 +63,7 @@ features_colors = {
     "Damage_Turret": "#e377c2"
 }
     
-fig = make_subplots(
-    rows=len(features), cols=1, shared_yaxes=False,
+fig = make_subplots(rows=len(features), cols=1, shared_xaxes=False, subplot_titles=subplot_titles)
     subplot_titles = [
     "KDA Distribution", "Gold Distribution", "Level Distribution", 
     "Participation Distribution", "Damage Dealt Distribution", 
