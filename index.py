@@ -62,10 +62,21 @@ all_players = pd.concat([
 ], ignore_index=True)
 all_players.to_csv('all_players.csv', index=False)
 
+# --- FITUR & ROLE FEATURES ---
+features = ['KDA', 'Gold', 'Level', 'Partisipation', 'Damage_Dealt', 'Damage_Taken', 'Damage_Turret']
+
+role_features = {
+    'Jungler': ['KDA', 'Gold', 'Partisipation', 'Damage_Dealt'],
+    'Explane': ['KDA', 'Damage_Taken', 'Level', 'Damage_Dealt'],
+    'Midlane': ['KDA', 'Gold', 'Partisipation', 'Damage_Dealt'],
+    'Roamer': ['KDA', 'Damage_Taken', 'Partisipation', 'Damage_Turret'],
+    'Goldlane': ['KDA', 'Gold', 'Damage_Dealt', 'Damage_Turret']
+}
+
 # --- HITUNG FUZZY LIMITS ---
 def get_role_limits(hero_list, df_role):
     df = df_role[df_role['Hero_Pick'].isin(hero_list)]
-    num_cols = ['KDA', 'Gold', 'Level', 'Partisipation', 'Damage_Dealt', 'Damage_Taken', 'Damage_Turret']
+    num_cols = features
     limits = df[num_cols].agg(['min', 'mean', 'max']).T
     limits = limits.rename(columns={'min': 'min_val', 'mean': 'mean_val', 'max': 'max_val'})
     limits = limits.reset_index().rename(columns={'index': 'Variable'})
@@ -108,9 +119,14 @@ def fuzzify(min_val, mean_val, max_val, x):
         mu_med = 0
     return [round(mu_low, 2), round(mu_med, 2), round(mu_high, 2)]
 
+# --- FUZZY LABEL (otomatis ambil max) ---
+def fuzzy_label(mu):
+    idx = int(np.argmax(mu))
+    return ['low', 'med', 'high'][idx]
+
 def calculateMuValues(df, fuzzy_limits, stat_cols=None):
     if stat_cols is None:
-        stat_cols = ['KDA', 'Gold', 'Level', 'Partisipation', 'Damage_Dealt', 'Damage_Taken', 'Damage_Turret']
+        stat_cols = features
     for col in stat_cols:
         mu_list = []
         for idx, row in df.iterrows():
@@ -127,8 +143,23 @@ def calculateMuValues(df, fuzzy_limits, stat_cols=None):
         df[f'mu_{col}'] = mu_list
     return df
 
+# --- RULES INFERENCE (CONTOH, HARUS DIISI DENGAN ATURAN ANDA!) ---
+# Jika Anda punya file rules.csv atau rules.txt, load ke DataFrame berikut:
+try:
+    rules_df = pd.read_csv("rules.csv")
+except Exception:
+    # Contoh rules_df untuk demo:
+    rules_df = pd.DataFrame({
+        'Role': ['Jungler','Jungler','Explane'],
+        'KDA': ['high','med','low'],
+        'Gold': ['high','low','high'],
+        'Partisipation': ['high','low','high'],
+        'Damage_Dealt': ['high','low','high'],
+        'Performance': ['bagus','jelek','bagus']
+    })
+
 # --- TAMPILAN GRAFIK BATASAN DATASET ---
-variables = ["KDA", "Gold", "Level", "Partisipation", "Damage_Dealt", "Damage_Taken", "Damage_Turret"]
+variables = features
 subplot_titles = [
     "KDA Distribution", "Gold Distribution", "Level Distribution", 
     "Participation Distribution", "Damage Dealt Distribution", 
@@ -190,20 +221,17 @@ else:
     for idx, row in filtered.iterrows():
         role = row['Player_Role']
         feats = role_features.get(role, [])
-        vals, mlabels, val_dict = {}, {}, {}
+        vals, mlabels = {}, {}
         for f in feats:
             lims = fuzzy_limits[(fuzzy_limits['Role'] == role) & (fuzzy_limits['Variable'] == f)]
             if lims.empty: continue
             mu = fuzzify(lims['min_val'].values[0], lims['mean_val'].values[0], lims['max_val'].values[0], row[f])
             vals[f] = mu
-            val_dict[f] = mu  # simpan nilai fuzzy untuk tabel fuzzifikasi
-            mlabels[f] = fuzzy_label(mu) # label (low, med, high)
-        # Proses inferensi rules (ambil performa dari tabel rules_df)
+            mlabels[f] = fuzzy_label(mu)
         rule_match = rules_df[(rules_df['Role'] == role)]
         for f in feats:
             rule_match = rule_match[rule_match[f] == mlabels[f]]
         performance = rule_match['Performance'].values[0] if not rule_match.empty else 'unknown'
-        # Tabel hasil klasifikasi akhir
         fuzzy_rows.append({
             'Player_Name': row['Player_Name'],
             'Role': role,
@@ -211,22 +239,20 @@ else:
             **mlabels,
             'Performance': performance
         })
-        # Tabel hasil fuzzifikasi (nilai keanggotaan)
         fuzzyval_row = {
             'Player_Name': row['Player_Name'],
             'Role': role,
             'Hero': row['Hero_Pick']
         }
         for f in feats:
-            fuzzyval_row[f'{f}_fuzzy'] = vals[f]  # contoh: [mu_low, mu_med, mu_high]
-            fuzzyval_row[f'{f}_label'] = mlabels[f]  # contoh: low/med/high
+            fuzzyval_row[f'{f}_fuzzy'] = vals[f]
+            fuzzyval_row[f'{f}_label'] = mlabels[f]
         fuzzyval_rows.append(fuzzyval_row)
 
-    # Tabel hasil fuzzifikasi
     st.subheader('Hasil Fuzzifikasi (Nilai Keanggotaan & Label Fuzzy)')
     st.dataframe(pd.DataFrame(fuzzyval_rows), hide_index=True)
 
-    # Tabel hasil akhir fuzzy logic
     st.subheader('Hasil Klasifikasi Performa (Fuzzy Logic)')
     st.dataframe(pd.DataFrame(fuzzy_rows), hide_index=True)
+
 st.success("Script telah diperbaiki agar dapat dijalankan pada Streamlit! Pastikan semua file .csv tersedia di folder yang sama dengan script ini.")
