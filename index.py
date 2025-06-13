@@ -1,146 +1,135 @@
-import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import ast
-from itertools import product
+import plotly.express as px
 
-st.set_page_config(layout="centered")
-st.title('Mobile Legends:Bang-Bang Player Performance')
-st.write("Program ini berfungsi untuk menentukan performa seorang pemain Mobile Legends:Bang-Bang berdasarkan hero yang dipilihnya dan posisi yang dimainkan. Sistem ini menggunakan dataset pertandingan semi-professional/professional patch 1.8.78C dengan logika Fuzzy.")
-
-# Load dataset
+# Load dataset utama
 df = pd.read_csv('MPLID_S13_POS.csv')
-roles = df['Player_Role'].unique()
 
-# List 5 hero populer per role (bisa diganti dynamic, tapi hardcode dari notebook)
+# Daftar hero populer per role (sesuai hasil eksplorasi Dataset.ipynb)
 jungler_list = ['Fredrinn', 'Baxia', 'Ling', 'Barats', 'Akai']
 explane_list = ['Cici', 'Terizla', 'Yu Zhong', 'Xborg', 'Masha']
 midlane_list = ['Luo Yi', 'Valentina', 'Novaria', 'Faramis', 'Pharsa']
 roamer_list = ['Ruby', 'Minotaur', 'Chip', 'Edith', 'Franco']
 goldlane_list = ['Roger', 'Claude', 'Karrie', 'Natan', 'Moskov']
-hero_populer = jungler_list + explane_list + midlane_list + roamer_list + goldlane_list
 
-# Filter hanya pemain yang main 25 hero populer
-all_players = df[df['Hero_Pick'].isin(hero_populer)].copy()
+# Filter data per role-hero
+jungler_df = df[(df['Player_Role'] == 'Jungler') & (df['Hero_Pick'].isin(jungler_list))]
+explane_df = df[(df['Player_Role'] == 'Explane') & (df['Hero_Pick'].isin(explane_list))]
+midlane_df = df[(df['Player_Role'] == 'Midlane') & (df['Hero_Pick'].isin(midlane_list))]
+roamer_df = df[(df['Player_Role'] == 'Roamer') & (df['Hero_Pick'].isin(roamer_list))]
+goldlane_df = df[(df['Player_Role'] == 'Goldlane') & (df['Hero_Pick'].isin(goldlane_list))]
 
-# ---- FUZZY LIMITS ----
+# Gabungkan semua data hasil filter
+all_players = pd.concat([jungler_df, explane_df, midlane_df, roamer_df, goldlane_df], ignore_index=True)
+all_players.reset_index(drop=True, inplace=True)
+
+# Fitur yang digunakan untuk fuzzy logic
 features = ['KDA', 'Gold', 'Level', 'Partisipation', 'Damage_Dealt', 'Damage_Taken', 'Damage_Turret']
-def get_fuzzy_limits(df):
-    result = []
-    role_map = {
-        'Jungler': jungler_list,
-        'Explane': explane_list,
-        'Midlane': midlane_list,
-        'Roamer': roamer_list,
-        'Goldlane': goldlane_list,
-    }
-    for role, hero_list in role_map.items():
-        temp = df[(df['Player_Role'] == role) & (df['Hero_Pick'].isin(hero_list))]
-        agg = temp[features].agg(['min', 'mean', 'max']).T
-        agg = agg.rename(columns={'min':'min_val', 'mean':'mean_val', 'max':'max_val'})
-        agg['Role'] = role
-        agg['Variable'] = agg.index
-        result.append(agg[['Role','Variable','min_val','mean_val','max_val']])
-    return pd.concat(result, ignore_index=True)
 
-fuzzy_limits = get_fuzzy_limits(all_players)
-st.subheader('Batasan Fuzzy per Statistik dan Role')
-st.dataframe(fuzzy_limits, hide_index=True)
+fuzzy_limits = []
+for role in all_players['Player_Role'].unique():
+    role_df = all_players[all_players['Player_Role'] == role]
+    for feat in features:
+        vals = role_df[feat].dropna()
+        if len(vals) == 0:
+            continue
+        min_val = vals.min()
+        mean_val = vals.mean()
+        max_val = vals.max()
+        fuzzy_limits.append({'Role': role, 'Variable': feat, 'min_val': min_val, 'mean_val': mean_val, 'max_val': max_val})
+df_limits = pd.DataFrame(fuzzy_limits)
+df_limits.to_csv('fuzzy_limits.csv', index=False)
 
-
-# ---- DISTRIBUSI DATA ----
-features = ['KDA', 'Gold', 'Level', 'Partisipation', 'Damage_Dealt', 'Damage_Taken', 'Damage_Turret']
-fig = make_subplots(
-    rows=len(features), cols=1, shared_yaxes=False,
-    subplot_titles=[f"{x} Distribution" for x in features]
-)
-for i, feat in enumerate(features, 1):
-    fig.add_trace(go.Box(x=all_players[feat], name=feat, boxpoints='outliers'), row=i, col=1)
-fig.update_layout(height=300*len(features), width=800, showlegend=True)
-st.plotly_chart(fig, use_container_width=True)
-
-# ---- FUZZY MEMBERSHIP FUNCTION ----
-def fuzzify(min_val, mean_val, max_val, x):
-    if mean_val == min_val: mean_val += 1e-6
-    if max_val == mean_val: max_val += 1e-6
-    # LOW
-    mu_low = max(0, (mean_val - x) / (mean_val - min_val)) if x <= mean_val else 0
-    # HIGH
-    mu_high = max(0, (x - mean_val) / (max_val - mean_val)) if x >= mean_val else 0
-    # MED
-    if min_val < x < mean_val:
-        mu_med = (x - min_val)/(mean_val-min_val)
-    elif mean_val < x < max_val:
-        mu_med = (max_val-x)/(max_val-mean_val)
-    elif x == mean_val:
-        mu_med = 1
+def fuzzify(minv, meanv, maxv, x):
+    # Segitiga: Low (min, min, mean), Medium (min, mean, max), High (mean, max, max)
+    if x <= minv: return {'low': 1, 'medium': 0, 'high': 0}
+    if x >= maxv: return {'low': 0, 'medium': 0, 'high': 1}
+    # Low
+    low = max((meanv - x) / (meanv - minv), 0) if x < meanv else 0
+    # Medium
+    if x < meanv:
+        medium = (x - minv) / (meanv - minv)
     else:
-        mu_med = 0
-    return [round(mu_low,2), round(mu_med,2), round(mu_high,2)]
+        medium = (maxv - x) / (maxv - meanv)
+    medium = max(medium, 0)
+    # High
+    high = max((x - meanv) / (maxv - meanv), 0) if x > meanv else 0
+    return {'low': low, 'medium': medium, 'high': high}
 
-def fuzzy_label(mu):
-    idx = np.argmax(mu)
-    return ['low','medium','high'][idx]
+fuzzified_rows = []
+for idx, row in all_players.iterrows():
+    role = row['Player_Role']
+    fuzz_feats = {}
+    for feat in features:
+        try:
+            lims = df_limits[(df_limits['Role'] == role) & (df_limits['Variable'] == feat)].iloc[0]
+            mu = fuzzify(lims['min_val'], lims['mean_val'], lims['max_val'], row[feat])
+            # Simpan membership degree
+            for label in ['low', 'medium', 'high']:
+                fuzz_feats[f"{feat}_{label}"] = mu[label]
+        except Exception as e:
+            # Jika data tidak ada
+            for label in ['low', 'medium', 'high']:
+                fuzz_feats[f"{feat}_{label}"] = np.nan
+    fuzzified_rows.append({'Player_Name': row['Player_Name'],
+                           'Player_Role': role,
+                           'Hero_Pick': row['Hero_Pick'],
+                           **fuzz_feats})
+df_fuzzified = pd.DataFrame(fuzzified_rows)
+df_fuzzified.to_csv('fuzzified_players.csv', index=False)
 
-# ---- RULES ----
-role_features = {
-    'Jungler':     ['KDA', 'Level', 'Partisipation', 'Damage_Taken'],
-    'Midlane':     ['KDA', 'Gold', 'Partisipation', 'Damage_Dealt'],
-    'Explane':     ['KDA', 'Level', 'Partisipation', 'Damage_Taken'],
-    'Goldlane':    ['KDA', 'Gold', 'Damage_Dealt', 'Damage_Turret'],
-    'Roamer':      ['KDA', 'Gold', 'Partisipation', 'Damage_Taken'],
-}
-def get_rules():
-    rules = []
-    for role, feats in role_features.items():
-        for comb in product(['low','medium','high'], repeat=len(feats)):
-            high = comb.count('high')
-            med = comb.count('medium')
-            if high >= 2:
-                perf = 'good'
-            elif med >= 2:
-                perf = 'decent'
-            else:
-                perf = 'bad'
-            rule = {'Role': role}
-            for f,l in zip(feats,comb): rule[f] = l
-            rule['Performance'] = perf
-            rules.append(rule)
-    return pd.DataFrame(rules)
-rules_df = get_rules()
+df_rules = pd.read_csv('playerinference_rules.csv')
+# Format: kolom [Role, KDA, Gold, ... dst, Performance]
+def get_fuzzy_label(val):
+    # Ambil label fuzzy dengan membership terbesar
+    return max(val, key=val.get)
 
-# ---- HERO INPUT ----
-st.subheader('Cari Performa Pemain dari Nama Hero')
-hero_name = st.text_input('Masukkan Nama Hero (case sensitive, contoh: Fredrinn):')
-filtered = all_players if not hero_name else all_players[all_players['Hero_Pick'] == hero_name]
+final_rows = []
+for idx, row in all_players.iterrows():
+    role = row['Player_Role']
+    # Label fuzzy tiap fitur
+    labels = {}
+    for feat in features:
+        lims = df_limits[(df_limits['Role'] == role) & (df_limits['Variable'] == feat)].iloc[0]
+        mu = fuzzify(lims['min_val'], lims['mean_val'], lims['max_val'], row[feat])
+        labels[feat] = get_fuzzy_label(mu)
+    # Cari rule yang cocok
+    df_rule = df_rules[df_rules['Role'] == role].copy()
+    for feat in features:
+        df_rule = df_rule[df_rule[feat] == labels[feat]]
+    if not df_rule.empty:
+        performance = df_rule.iloc[0]['Performance']
+    else:
+        performance = 'unknown'
+    final_rows.append({**row, **labels, 'Performance': performance})
 
-if filtered.empty:
-    st.info("Tidak ada data untuk Hero yang dimasukkan.")
-else:
-    # Tampilkan data ringkas
-    st.write(f"Menampilkan {len(filtered)} data pemain untuk hero `{hero_name or '[ALL]'}`")
-    st.dataframe(filtered[['Player_Name','Player_Role','Hero_Pick'] + features], hide_index=True)
+df_final = pd.DataFrame(final_rows)
+df_final.to_csv('fuzzylogic_final.csv', index=False)
 
-    # FUZZY + INFERENSI
-    fuzzy_rows = []
-    for idx, row in filtered.iterrows():
-        role = row['Player_Role']
-        feats = role_features.get(role, [])
-        vals, mlabels = {}, {}
-        for f in feats:
-            lims = fuzzy_limits[(fuzzy_limits['Role']==role)&(fuzzy_limits['Variable']==f)]
-            if lims.empty: continue
-            mu = fuzzify(lims['min_val'].values[0], lims['mean_val'].values[0], lims['max_val'].values[0], row[f])
-            vals[f] = mu
-            mlabels[f] = fuzzy_label(mu)
-        rule_match = rules_df[(rules_df['Role']==role)]
-        for f in feats:
-            rule_match = rule_match[rule_match[f]==mlabels[f]]
-        performance = rule_match['Performance'].values[0] if not rule_match.empty else 'unknown'
-        fuzzy_rows.append({'Player_Name':row['Player_Name'], 'Role':role, 'Hero':row['Hero_Pick'], **mlabels, 'Performance':performance})
-    st.subheader('Hasil Klasifikasi Performa (Fuzzy Logic)')
-    st.dataframe(pd.DataFrame(fuzzy_rows), hide_index=True)
+import plotly.express as px
 
-st.caption("© 2024 - Fuzzy Player Performance MLBB - Streamlit Demo")
+for col in features:
+    fig = px.box(df_final, y=col, color="Player_Role", points="all", title=f"Boxplot {col} per Role")
+    fig.show()
+
+print("Fuzzy Limits:")
+display(df_limits)
+print("Fuzzified Players:")
+display(df_fuzzified)
+print("Rules:")
+display(df_rules)
+print("Final Fuzzylogic:")
+display(df_final)
+
+import streamlit as st
+
+st.title("Fuzzy Logic Player Performance - Mobile Legends")
+
+st.subheader("Fuzzy Limits")
+st.dataframe(df_limits)
+st.subheader("Fuzzified Players")
+st.dataframe(df_fuzzified)
+st.subheader("Rules")
+st.dataframe(df_rules)
+st.subheader("Final Fuzzy Logic Results")
+st.dataframe(df_final)
