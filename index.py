@@ -26,6 +26,7 @@ hero_populer = jungler_list + explane_list + midlane_list + roamer_list + goldla
 all_players = df[df['Hero_Pick'].isin(hero_populer)].copy()
 
 # ---- FUZZY LIMITS ----
+features = ['KDA', 'Gold', 'Level', 'Partisipation', 'Damage_Dealt', 'Damage_Taken', 'Damage_Turret']
 def get_fuzzy_limits(df):
     result = []
     role_map = {
