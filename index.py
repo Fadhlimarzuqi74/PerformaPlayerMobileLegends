@@ -26,7 +26,7 @@ menu = st.sidebar.radio(
 
 # ---------- 1. STATISTIK DATASET ----------
 if menu == "Statistik Dataset":
-    st.title("Statistik Dataset Pemain MPL Indonesia Season 13 Babak Play Off")
+    st.title("Statistik Dataset Pemain MPL Indonesia Season 13")
     st.markdown("**Dataset sudah difilter berdasarkan 5 hero yang paling banyak dimainkan di setiap role**")
 
     # Tambahkan keterangan hero teratas per role
