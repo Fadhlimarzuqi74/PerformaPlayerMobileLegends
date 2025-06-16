@@ -15,7 +15,7 @@ def load_data():
     fuzzylogic_final = pd.read_csv('fuzzylogic_final.csv')
     return all_players, fuzzy_limits, rules, fuzzified, fuzzylogic_final
 
-all_players, fuzzy_limits, rules, fuzzylogic_final = load_data()
+all_players, fuzzy_limits, rules, fuzzified, fuzzylogic_final = load_data()
 
 # ---------- SIDEBAR ----------
 st.sidebar.title("Fuzzy Logic Player Performance")
