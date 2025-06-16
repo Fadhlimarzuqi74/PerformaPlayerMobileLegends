@@ -69,8 +69,8 @@ if menu == "Batasan Fuzzy":
     st.plotly_chart(fig, use_container_width=True)
 
 # ---------- 3. TABEL FUZZIFIKASI ----------
-if menu == "Tabel Fuzzyfikasi":
-    st.title("Tabel Hasil Fuzzyfikasi Derajat Keanggotaan")
+if menu == "Fuzzyfikasi":
+    st.title("Tabel Hasil Fuzzifikasi")
     st.caption("Setiap fitur pemain dikonversi ke derajat keanggotaan fuzzy (low, medium, high) berbentuk list [μ_low, μ_med, μ_high].")
     st.dataframe(all_players_fuzzy)
 
@@ -79,16 +79,16 @@ if menu == "Tabel Fuzzyfikasi":
     Setiap nilai μ menunjukkan seberapa besar suatu statistik termasuk dalam kategori tersebut, sehingga analisis data menjadi lebih fleksibel.
     """)
 
-# --- 3. TABEL INFERENSI (RULES) ---
+# --- 4. TABEL INFERENSI (RULES) ---
 if menu == "Tabel Inferensi (Rules)":
     st.title("Tabel Inferensi Fuzzy Logic (Rule Base)")
     st.markdown("**Aturan inferensi fuzzy logic per role berdasarkan kombinasi variabel dari dataset dan label (low/medium/high) masing-masing fitur.**")
     st.dataframe(rules)
     st.info("Kolom Performance adalah output hasil inferensi fuzzy berdasarkan kombinasi nilai fuzzy setiap fitur.")
     
-# ---------- 4. TABEL FUZZYFIKASI ----------
-if menu == "Tabel Fuzzyfikasi":
-    st.title("Tabel Hasil Fuzzyfikasi Derajat Keanggotaan")
+# ---------- 5. DEFUZZIFIKASI ----------
+if menu == "Defuzzifikasi":
+    st.title("Tabel Hasil Defuzzifikasi")
     st.caption("Setiap fitur pemain dikonversi ke derajat keanggotaan fuzzy (low, medium, high) berbentuk list [μ_low, μ_med, μ_high].")
     st.dataframe(fuzzified)
 
