@@ -21,7 +21,7 @@ all_players, fuzzy_limits, rules, fuzzified, fuzzylogic_final = load_data()
 st.sidebar.title("Fuzzy Logic Mobile Legends Player Performance")
 menu = st.sidebar.radio(
     "Pilih halaman:",
-    ("Statistik Dataset", "Visualisasi Fuzzy Limits", "Tabel Inferensi (Rules)", "Tabel Fuzzyfikasi", "Hasil Fuzzy Logic")
+    ("Statistik Dataset", "Batasan Fuzzy", "Tabel Inferensi (Rules)", "Tabel Fuzzyfikasi", "Hasil Fuzzy Logic")
 )
 
 # ---------- 1. STATISTIK DATASET ----------
@@ -47,7 +47,7 @@ if menu == "Statistik Dataset":
 
 # ---------- 2. VISUALISASI FUZZY LIMITS ----------
 
-if menu == "Visualisasi Fuzzy Limits":
+if menu == "Batasan Fuzzy":
     st.title("Tabel & Visualisasi Batasan Fuzzy")
 
     # --- Tampilkan tabel lebih dulu ---
@@ -70,7 +70,7 @@ if menu == "Visualisasi Fuzzy Limits":
 # --- 3. TABEL INFERENSI (RULES) ---
 if menu == "Tabel Inferensi (Rules)":
     st.title("Tabel Inferensi Fuzzy Logic (Rule Base)")
-    st.caption("Aturan inferensi fuzzy logic per role berdasarkan kombinasi label (low/medium/high) masing-masing fitur.")
+    st.markdown("**Aturan inferensi fuzzy logic per role berdasarkan kombinasi variabel dari dataset dan label (low/medium/high) masing-masing fitur.**")
     st.dataframe(rules)
     st.info("Kolom Performance adalah output hasil inferensi fuzzy berdasarkan kombinasi nilai fuzzy setiap fitur.")
     
