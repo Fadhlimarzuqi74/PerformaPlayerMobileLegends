@@ -11,8 +11,9 @@ def load_data():
     all_players = pd.read_csv('all_players.csv')
     fuzzy_limits = pd.read_csv('fuzzy_limits.csv')
     rules = pd.read_csv('playerinference_rules.csv')
+    fuzzified = pd.read_csv('fuzzified_player.csv')
     fuzzylogic_final = pd.read_csv('fuzzylogic_final.csv')
-    return all_players, fuzzy_limits, rules, fuzzylogic_final
+    return all_players, fuzzy_limits, rules, fuzzified, fuzzylogic_final
 
 all_players, fuzzy_limits, rules, fuzzylogic_final = load_data()
 
