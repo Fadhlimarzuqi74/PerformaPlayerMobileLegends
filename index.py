@@ -72,19 +72,21 @@ if menu == "Tabel Inferensi (Rules)":
 if menu == "Tabel Fuzzyfikasi":
     st.title("Tabel Hasil Fuzzyfikasi Derajat Keanggotaan")
     st.caption("Setiap fitur pemain dikonversi ke derajat keanggotaan fuzzy (low, medium, high) berbentuk list [μ_low, μ_med, μ_high].")
-
-    # Pilihan filter
-    pemain = st.selectbox("Pilih Nama Pemain", options=all_players['Player_Name'].unique())
-    df_fuzzy = pd.read_csv('fuzzified_player.csv')
-    st.write(df_fuzzy[df_fuzzy['Player_Name'] == pemain])
+    st.dataframe(fuzzified)
 
     st.markdown("> **Keterangan:** Nilai pada kolom mu_xxx menunjukkan derajat keanggotaan fuzzy setelah proses fuzzification.")
 
 # ---------- 5. HASIL FUZZY LOGIC ----------
 if menu == "Hasil Fuzzy Logic":
     st.title("Hasil Akhir Inferensi Fuzzy Logic")
-    st.markdown("Tiap baris adalah hasil inferensi fuzzy logic untuk **setiap pemain** (role, hero, fuzzy label fitur, hasil performance).")
-    st.dataframe(fuzzylogic_final)
+
+    # Pilih pemain untuk filter hasil tabel
+    pemain = st.selectbox("Pilih Nama Pemain", options=fuzzylogic_final['Player_Name'].unique())
+    filtered = fuzzylogic_final[fuzzylogic_final['Player_Name'] == pemain]
+    st.dataframe(filtered)
+
+    with st.expander("Lihat Seluruh Hasil Tabel (semua pemain)"):
+        st.dataframe(fuzzylogic_final)
 
     st.subheader("Rekapitulasi Jumlah Performance per Role")
     summary = fuzzylogic_final.groupby(['Player_Role','Performance'])['Player_Name'].count().unstack().fillna(0).astype(int)
@@ -94,9 +96,8 @@ if menu == "Hasil Fuzzy Logic":
     import plotly.express as px
     fig = px.histogram(fuzzylogic_final, x="Performance", color="Player_Role", barmode='group')
     st.plotly_chart(fig)
-
     st.info("Label Performance: **good**, **decent**, **bad** berdasarkan aturan fuzzy rule base.")
-
+    
 # ---------- FOOTER ----------
 st.markdown("---")
 st.caption("App dibuat dengan :heart: oleh [Fadhlimarzuqi74](https://github.com/Fadhlimarzuqi74)")
