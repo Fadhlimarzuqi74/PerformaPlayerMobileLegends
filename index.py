@@ -76,13 +76,17 @@ if menu == "Batasan Fuzzy":
 # ---------- 3. TABEL FUZZIFIKASI ----------
 if menu == "Fuzzifikasi":
     st.title("Tabel Hasil Fuzzifikasi")
-    st.caption("Setiap fitur pemain dikonversi ke derajat keanggotaan fuzzy (low, medium, high) berbentuk list [μ_low, μ_med, μ_high].")
+    st.write("""Setiap variabel statistik pemain diubah ke derajat keanggotaan fuzzy (μ): Rendah, Sedang, Tinggi.""")
     st.dataframe(all_players_fuzzy)
 
-    st.info("""
-    Fuzzifikasi adalah proses mengubah data statistik pemain, seperti KDA atau Gold, menjadi nilai derajat keanggotaan fuzzy (μ) pada kategori Rendah, Sedang, dan Tinggi. 
-    Setiap nilai μ menunjukkan seberapa besar suatu statistik termasuk dalam kategori tersebut, sehingga analisis data menjadi lebih fleksibel.
-    """)
+    st.write("**Contoh Hasil Fuzzyfikasi (Player: Reyy, Role: Jungler, Hero: Ling):**")
+    st.write("- **mu_KDA:** `[0, 0.35, 0.65]` → KDA pemain ini 35% Medium, 65% High")
+    st.write("- **mu_Gold:** `[0, 0.91, 0.09]` → Gold yang didapat 91% Medium, 9% High")
+    st.write("- **mu_Level:** `[0, 0, 1.0]` → Level 100% High")
+    st.write("- **mu_Partisipation:** `[0, 0.78, 0.22]` → Partisipasi 78% Medium, 22% High")
+    st.write("- **mu_Damage_Dealt:** `[0.01, 0.99, 0]` → Damage Dealt 99% Medium")
+    st.write("- **mu_Damage_Taken:** `[0.98, 0.02, 0]` → Damage Taken 98% Low")
+    st.write("- **mu_Damage_Turret:** `[0, 0.47, 0.53]` → Damage Turret 47% Medium, 53% High")
 
 # --- 4. TABEL INFERENSI (RULES) ---
 if menu == "Tabel Inferensi (Rules)":
