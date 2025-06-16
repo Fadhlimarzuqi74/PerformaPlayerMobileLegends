@@ -28,9 +28,9 @@ menu = st.sidebar.radio(
 
 # ---------- 1. STATISTIK DATASET ----------
 if menu == "Statistik Dataset":
-    st.title("Statistik Dataset Pemain MPL Indonesia Season 13")
-    st.info("Sistem ini menggunakan dataset yang diambil dari pertandingan profesional Mobile Legends pada babak Play Off yang terjadi di patch 1.8.78C")
-    st.write(df)
+    st.title("Statistik Dataset Pemain MPL Indonesia")
+    st.write("Sistem ini menggunakan dataset yang diambil dari pertandingan profesional Mobile Legends Season 13 pada babak Play Off yang terjadi di patch 1.8.78C")
+    st.dataframe(df)
             
     st.markdown("**Dataset sudah difilter berdasarkan 5 hero yang paling banyak dimainkan di setiap role**")
 
@@ -41,7 +41,7 @@ if menu == "Statistik Dataset":
     st.write("**Roamer:** Ruby, Minotaur, Chip, Edith, Franco")
     st.write("**Goldlane:** Roger, Claude, Karrie, Natan, Moskov")
 
-    st.write(all_players)
+    st.dataframe(all_players)
 
     st.subheader("Cek Null & Duplicate")
     st.write("Missing values per kolom:")
@@ -57,7 +57,8 @@ if menu == "Batasan Fuzzy":
 
     # --- Tampilkan tabel lebih dulu ---
     st.subheader("Batasan Fuzzy")
-    st.caption("Min, Mean, Max setiap fitur statistik untuk masing-masing role (hasil dari fuzzy_limits.csv).")
+    st.write("""Tabel ini menunjukkan batas nilai minimum, rata-rata, dan maksimum setiap variabel dataset 
+    untuk setiap role. Batas ini digunakan sebagai acuan pembuatan fungsi keanggotaan fuzzy.""")
     st.dataframe(fuzzy_limits)
 
     # --- Lanjut visualisasi di bawahnya ---
