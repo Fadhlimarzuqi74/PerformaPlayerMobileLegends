@@ -14,9 +14,9 @@ def load_data():
     rules = pd.read_csv('playerinference_rules.csv')
     fuzzified = pd.read_csv('fuzzified_player.csv')
     fuzzylogic_final = pd.read_csv('fuzzylogic_final.csv')
-    return all_players, fuzzy_limits, all_player_fuzzy, rules, fuzzified, fuzzylogic_final
+    return all_players, fuzzy_limits, all_players_fuzzy, rules, fuzzified, fuzzylogic_final
 
-all_players, fuzzy_limits, all_player_fuzzy, rules, fuzzified, fuzzylogic_final = load_data()
+all_players, fuzzy_limits, all_players_fuzzy, rules, fuzzified, fuzzylogic_final = load_data()
 
 # ---------- SIDEBAR ----------
 st.sidebar.title("Fuzzy Logic Mobile Legends Player Performance")
@@ -69,7 +69,7 @@ if menu == "Batasan Fuzzy":
     st.plotly_chart(fig, use_container_width=True)
 
 # ---------- 3. TABEL FUZZIFIKASI ----------
-if menu == "Fuzzyfikasi":
+if menu == "Fuzzifikasi":
     st.title("Tabel Hasil Fuzzifikasi")
     st.caption("Setiap fitur pemain dikonversi ke derajat keanggotaan fuzzy (low, medium, high) berbentuk list [μ_low, μ_med, μ_high].")
     st.dataframe(all_players_fuzzy)
