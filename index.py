@@ -10,18 +10,19 @@ import ast
 def load_data():
     all_players = pd.read_csv('all_players.csv')
     fuzzy_limits = pd.read_csv('fuzzy_limits.csv')
+    all_players_fuzzy = pd.read_csv('all_players_fuzzy.csv')
     rules = pd.read_csv('playerinference_rules.csv')
     fuzzified = pd.read_csv('fuzzified_player.csv')
     fuzzylogic_final = pd.read_csv('fuzzylogic_final.csv')
-    return all_players, fuzzy_limits, rules, fuzzified, fuzzylogic_final
+    return all_players, fuzzy_limits, all_player_fuzzy, rules, fuzzified, fuzzylogic_final
 
-all_players, fuzzy_limits, rules, fuzzified, fuzzylogic_final = load_data()
+all_players, fuzzy_limits, all_player_fuzzy, rules, fuzzified, fuzzylogic_final = load_data()
 
 # ---------- SIDEBAR ----------
 st.sidebar.title("Fuzzy Logic Mobile Legends Player Performance")
 menu = st.sidebar.radio(
     "Pilih halaman:",
-    ("Statistik Dataset", "Batasan Fuzzy", "Tabel Inferensi (Rules)", "Tabel Fuzzyfikasi", "Hasil Fuzzy Logic")
+    ("Statistik Dataset", "Batasan Fuzzy", "Fuzzifikasi", "Tabel Inferensi (Rules)", "Defuzzifikasi", "Hasil Fuzzy Logic")
 )
 
 # ---------- 1. STATISTIK DATASET ----------
@@ -66,6 +67,17 @@ if menu == "Batasan Fuzzy":
         fig.add_trace(go.Box(x=all_players[feat], name=feat, boxpoints='outliers'), row=i, col=1)
     fig.update_layout(height=300*len(features), width=800, showlegend=True)
     st.plotly_chart(fig, use_container_width=True)
+
+# ---------- 3. TABEL FUZZIFIKASI ----------
+if menu == "Tabel Fuzzyfikasi":
+    st.title("Tabel Hasil Fuzzyfikasi Derajat Keanggotaan")
+    st.caption("Setiap fitur pemain dikonversi ke derajat keanggotaan fuzzy (low, medium, high) berbentuk list [μ_low, μ_med, μ_high].")
+    st.dataframe(all_players_fuzzy)
+
+    st.info("""
+    Fuzzifikasi adalah proses mengubah data statistik pemain, seperti KDA atau Gold, menjadi nilai derajat keanggotaan fuzzy (μ) pada kategori Rendah, Sedang, dan Tinggi. 
+    Setiap nilai μ menunjukkan seberapa besar suatu statistik termasuk dalam kategori tersebut, sehingga analisis data menjadi lebih fleksibel.
+    """)
 
 # --- 3. TABEL INFERENSI (RULES) ---
 if menu == "Tabel Inferensi (Rules)":
