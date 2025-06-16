@@ -8,15 +8,16 @@ import ast
 # ---------- DATA LOADING ----------
 @st.cache_data
 def load_data():
+    df = pd.read_csv('MPLID_S13_POS.csv')
     all_players = pd.read_csv('all_players.csv')
     fuzzy_limits = pd.read_csv('fuzzy_limits.csv')
     all_players_fuzzy = pd.read_csv('all_players_fuzzy.csv')
     rules = pd.read_csv('playerinference_rules.csv')
     fuzzified = pd.read_csv('fuzzified_player.csv')
     fuzzylogic_final = pd.read_csv('fuzzylogic_final.csv')
-    return all_players, fuzzy_limits, all_players_fuzzy, rules, fuzzified, fuzzylogic_final
+    return df, all_players, fuzzy_limits, all_players_fuzzy, rules, fuzzified, fuzzylogic_final
 
-all_players, fuzzy_limits, all_players_fuzzy, rules, fuzzified, fuzzylogic_final = load_data()
+df, all_players, fuzzy_limits, all_players_fuzzy, rules, fuzzified, fuzzylogic_final = load_data()
 
 # ---------- SIDEBAR ----------
 st.sidebar.title("Fuzzy Logic Mobile Legends Player Performance")
@@ -28,6 +29,9 @@ menu = st.sidebar.radio(
 # ---------- 1. STATISTIK DATASET ----------
 if menu == "Statistik Dataset":
     st.title("Statistik Dataset Pemain MPL Indonesia Season 13")
+    st.info("Sistem ini menggunakan dataset yang diambil dari pertandingan profesional Mobile Legends pada babak Play Off yang terjadi di patch 1.8.78C")
+    st.write(df)
+            
     st.markdown("**Dataset sudah difilter berdasarkan 5 hero yang paling banyak dimainkan di setiap role**")
 
     # Tambahkan keterangan hero teratas per role
