@@ -18,16 +18,27 @@ def load_data():
 all_players, fuzzy_limits, rules, fuzzified, fuzzylogic_final = load_data()
 
 # ---------- SIDEBAR ----------
-st.sidebar.title("Fuzzy Logic Player Performance")
+st.sidebar.title("Fuzzy Logic Mobile Legends Player Performance")
 menu = st.sidebar.radio(
     "Pilih halaman:",
     ("Statistik Dataset", "Visualisasi Fuzzy Limits", "Tabel Inferensi (Rules)", "Tabel Fuzzyfikasi", "Hasil Fuzzy Logic")
 )
 
 # ---------- 1. STATISTIK DATASET ----------
-if menu == "Statistik Dataset":
-    st.title("Statistik Dataset Pemain MPL")
-    st.markdown("**Data 250 baris, 25 hero populer, 5 role utama**")
+if menu == "Dataset Pemain":
+    st.title("Statistik Dataset Pemain MPL Indonesia Season 13 Babak Play Off")
+    st.markdown("**Dataset sudah difilter berdasarkan 5 hero yang paling banyak dimainkan di setiap role**")
+
+roles = {
+    'Jungler' : ['Fredrinn', 'Baxia', 'Ling', 'Barats', 'Akai'],
+    'Explane' : ['Cici', 'Terizla', 'Yu Zhong', 'Xborg', 'Masha'],
+    'Midlane' : ['Luo Yi', 'Valentina', 'Novaria', 'Faramis', 'Pharsa'],
+    'Roamer'  : ['Ruby', 'Minotaur', 'Chip', 'Edith', 'Franco'],
+    'Goldlane': ['Roger', 'Claude', 'Karrie', 'Natan', 'Moskov']
+}
+
+for role, heroes in roles.items():
+    st.write(f"**{role}:** {', '.join(heroes)}")
     st.write(all_players)
 
     st.subheader("Deskripsi Statistik")
