@@ -91,14 +91,34 @@ if menu == "Fuzzifikasi":
 # --- 4. TABEL INFERENSI (RULES) ---
 if menu == "Tabel Inferensi (Rules)":
     st.title("Tabel Inferensi Fuzzy Logic (Rule Base)")
-    st.markdown("**Aturan inferensi fuzzy logic per role berdasarkan kombinasi variabel dari dataset dan label (low/medium/high) masing-masing fitur.**")
-    st.dataframe(rules)
+    st.write("""
+Tabel inferensi (rules) fuzzy logic pada aplikasi ini dibentuk secara otomatis berdasarkan kombinasi seluruh label fuzzy (low, medium, high) untuk variabel-variabel utama pada tiap role.
+
+- Untuk setiap role (Jungler, Midlane, Explane, Goldlane, Roamer), dipilih 4 variabel statistik yang paling relevan sebagai input fuzzy.
+    - Jungler : KDA, level, Partisipation, Damage_Taken
+    - Midlane : KDA, Gold, Partisipation, Damage_Dealt
+    - Explane : KDA, Level,Partisipation, Damage_Taken
+    - Goldlane: KDA, Gold, Damage_Dealt, Damage_Turret
+    - Roamer  : KDA, Level, Partisipation, Damage_Taken
+    
+- Semua kombinasi label fuzzy dari fitur-fitur tersebut di-generate, lalu ditentukan output performa ('Performance') menggunakan aturan:
+    - Jika kombinasi mengandung **2 atau lebih 'high'**, maka performa = **good**
+    - Jika kombinasi mengandung **2 atau lebih 'medium'** (dan kurang dari 2 'high'), maka performa = **decent**
+    - Sisanya, performa = **bad**
+- Hasil akhirnya berupa tabel yang memetakan setiap kombinasi label fuzzy ke nilai performa (bad/decent/good) untuk masing-masing role.
+""")
     st.info("Kolom Performance adalah output hasil inferensi fuzzy berdasarkan kombinasi nilai fuzzy setiap fitur.")
+    st.dataframe(rules)
+    
     
 # ---------- 5. DEFUZZIFIKASI ----------
 if menu == "Defuzzifikasi":
     st.title("Tabel Hasil Defuzzifikasi")
-    st.caption("Setiap fitur pemain dikonversi ke derajat keanggotaan fuzzy (low, medium, high) berbentuk list [μ_low, μ_med, μ_high].")
+    st.write("""
+    Melakukan proses defuzzifikasi pada tabel inference hasil fuzzy.
+    - Mengelompokkan nilai min(mu) untuk masing-masing kategori output ('bad', 'decent', 'good').
+    - Mengembalikan nilai maksimum dari tiap kelompok sebagai representasi output crisp.
+    """)
     st.dataframe(fuzzified)
 
     st.markdown("> **Keterangan:** Nilai pada kolom mu_xxx menunjukkan derajat keanggotaan fuzzy setelah proses fuzzification.")
