@@ -29,20 +29,14 @@ if menu == "Dataset Pemain":
     st.title("Statistik Dataset Pemain MPL Indonesia Season 13 Babak Play Off")
     st.markdown("**Dataset sudah difilter berdasarkan 5 hero yang paling banyak dimainkan di setiap role**")
 
-roles = {
-    'Jungler' : ['Fredrinn', 'Baxia', 'Ling', 'Barats', 'Akai'],
-    'Explane' : ['Cici', 'Terizla', 'Yu Zhong', 'Xborg', 'Masha'],
-    'Midlane' : ['Luo Yi', 'Valentina', 'Novaria', 'Faramis', 'Pharsa'],
-    'Roamer'  : ['Ruby', 'Minotaur', 'Chip', 'Edith', 'Franco'],
-    'Goldlane': ['Roger', 'Claude', 'Karrie', 'Natan', 'Moskov']
-}
+    # Tambahkan keterangan hero teratas per role
+    st.write("**Jungler:** Fredrinn, Baxia, Ling, Barats, Akai")
+    st.write("**Explane:** Cici, Terizla, Yu Zhong, Xborg, Masha")
+    st.write("**Midlane:** Luo Yi, Valentina, Novaria, Faramis, Pharsa")
+    st.write("**Roamer:** Ruby, Minotaur, Chip, Edith, Franco")
+    st.write("**Goldlane:** Roger, Claude, Karrie, Natan, Moskov")
 
-for role, heroes in roles.items():
-    st.write(f"**{role}:** {', '.join(heroes)}")
     st.write(all_players)
-
-    st.subheader("Deskripsi Statistik")
-    st.dataframe(all_players.describe())
 
     st.subheader("Cek Null & Duplicate")
     st.write("Missing values per kolom:")
